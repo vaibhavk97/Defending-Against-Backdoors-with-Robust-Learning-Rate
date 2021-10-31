@@ -13,7 +13,7 @@ class MetaFlAgent():
         self.id = id
         self.args = args
         self.data_idxs = data_idxs
-
+        self.train_dataset_init = train_dataset
         # get datasets, fedemnist is handled differently as it doesn't come with pytorch
         if train_dataset is None:
             self.train_dataset = torch.load(f'../data/Fed_EMNIST/user_trainsets/user_{id}_trainset.pt')
@@ -28,7 +28,7 @@ class MetaFlAgent():
         self.n_data = len(self.train_dataset)
         
     def turn_malicious(self):
-        utils.poison_dataset(self.train_dataset, self.args, self.data_idxs, agent_idx=self.id)    
+        utils.poison_dataset(self.train_dataset_init, self.args, self.data_idxs, agent_idx=self.id)
 
 
     def local_train(self, global_model, criterion):

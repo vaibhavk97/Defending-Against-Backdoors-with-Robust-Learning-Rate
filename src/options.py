@@ -7,7 +7,7 @@ def args_parser():
     parser.add_argument('--data', type=str, default='fmnist',
                         help="dataset we want to train on")
     
-    parser.add_argument('--num_agents', type=int, default=10,
+    parser.add_argument('--num_agents', type=int, default=75,
                         help="number of agents:K")
     
     parser.add_argument('--agent_frac', type=float, default=1,
@@ -16,19 +16,19 @@ def args_parser():
     parser.add_argument('--num_corrupt', type=int, default=0,
                         help="number of corrupt agents")
     
-    parser.add_argument('--rounds', type=int, default=200,
+    parser.add_argument('--rounds', type=int, default=50,
                         help="number of communication rounds:R")
     
     parser.add_argument('--aggr', type=str, default='avg', 
                         help="aggregation function to aggregate agents' local weights")
     
-    parser.add_argument('--local_ep', type=int, default=2,
+    parser.add_argument('--local_ep', type=int, default=1,
                         help="number of local epochs:E")
     
     parser.add_argument('--bs', type=int, default=256,
                         help="local batch size: B")
     
-    parser.add_argument('--client_lr', type=float, default=0.1,
+    parser.add_argument('--client_lr', type=float, default=0.2,
                         help='clients learning rate')
     
     parser.add_argument('--client_moment', type=float, default=0.9,
@@ -43,7 +43,7 @@ def args_parser():
     parser.add_argument('--target_class', type=int, default=7, 
                         help="target class for backdoor attack")
     
-    parser.add_argument('--poison_frac', type=float, default=0.0, 
+    parser.add_argument('--poison_frac', type=float, default=0.5,
                         help="fraction of dataset to corrupt for backdoor attack")
     
     parser.add_argument('--pattern_type', type=str, default='plus', 
