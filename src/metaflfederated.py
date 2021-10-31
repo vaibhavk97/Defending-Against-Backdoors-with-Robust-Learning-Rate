@@ -18,7 +18,6 @@ from utils import H5Dataset
 
 torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark = True
-
 if __name__ == '__main__':
     args = args_parser()
     args.server_lr = args.server_lr if args.aggr == 'sign' else 1.0
@@ -60,22 +59,24 @@ if __name__ == '__main__':
     n_model_params = len(parameters_to_vector(global_model.parameters()))
     aggregator = Aggregation(agent_data_sizes, n_model_params, poisoned_val_loader, args, writer)
     criterion = nn.CrossEntropyLoss().to(args.device)
-
-    #Let's configure these parameters
-    total_cohort = 15
-    client_in_cohort = 5
-    randomly_sampled_client = np.random.choice(total_cohort*client_in_cohort, total_cohort*client_in_cohort, replace=False).reshape(total_cohort,client_in_cohort)
-
-    #Meta FL training loop
-    for rnd in tqdm(range(1, args.rounds+1)):
+    # Let's `configure these parameters
+    total_cohort = args.num_cohorts
+    client_in_cohort = args.client_per_cohort
+    randomly_sampled_client = np.random.choice(total_cohort * client_in_cohort, total_cohort * client_in_cohort,
+                                               replace=False).reshape(total_cohort, client_in_cohort)
+    poisionous_cohort = args.num_p_cohorts
+    poisionous_client = args.num_p_cohorts_clients
+    for cohort in range(poisionous_cohort):
+        for client in range(poisionous_client):
+            agents[randomly_sampled_client[cohort][client]].turn_malicious()
+    # Meta FL training loop
+    for rnd in tqdm(range(1, args.rounds + 1)):
         rnd_global_params = parameters_to_vector(global_model.parameters()).detach()
         cohort_agent_updates_dict = {}
         for cohort in range(total_cohort):
             agent_updates_dict = {}
-            for client in range(client_in_cohort): 
+            for client in range(client_in_cohort):
                 agent_id = randomly_sampled_client[cohort][client]
-                if(cohort < 4 and client < 1):
-                    agents[agent_id].turn_malicious()                
                 update = agents[agent_id].local_train(global_model, criterion)
                 agent_updates_dict[agent_id] = update
                 vector_to_parameters(copy.deepcopy(rnd_global_params), global_model.parameters())
@@ -91,14 +92,12 @@ if __name__ == '__main__':
                 writer.add_scalar('Validation/Accuracy', val_acc, rnd)
                 print(f'| Val_Loss/Val_Acc: {val_loss:.3f} / {val_acc:.3f} |')
                 print(f'| Val_Per_Class_Acc: {val_per_class_acc} ')
-            
+
                 poison_loss, (poison_acc, _) = utils.get_loss_n_accuracy(global_model, criterion, poisoned_val_loader, args)
                 cum_poison_acc_mean += poison_acc
                 writer.add_scalar('Poison/Base_Class_Accuracy', val_per_class_acc[args.base_class], rnd)
                 writer.add_scalar('Poison/Poison_Accuracy', poison_acc, rnd)
                 writer.add_scalar('Poison/Poison_Loss', poison_loss, rnd)
-                writer.add_scalar('Poison/Cumulative_Poison_Accuracy_Mean', cum_poison_acc_mean/rnd, rnd) 
+                writer.add_scalar('Poison/Cumulative_Poison_Accuracy_Mean', cum_poison_acc_mean/rnd, rnd)
                 print(f'| Poison Loss/Poison Acc: {poison_loss:.3f} / {poison_acc:.3f} |')
-     
-                
     print('Training has finished!')

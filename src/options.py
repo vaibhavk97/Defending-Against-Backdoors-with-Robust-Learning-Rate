@@ -43,7 +43,7 @@ def args_parser():
     parser.add_argument('--target_class', type=int, default=7, 
                         help="target class for backdoor attack")
     
-    parser.add_argument('--poison_frac', type=float, default=0.5,
+    parser.add_argument('--poison_frac', type=float, default=0.8,
                         help="fraction of dataset to corrupt for backdoor attack")
     
     parser.add_argument('--pattern_type', type=str, default='plus', 
@@ -69,6 +69,13 @@ def args_parser():
     
     parser.add_argument('--num_workers', type=int, default=0, 
                         help="num of workers for multithreading")
-    
+    parser.add_argument('--num_cohorts', type=int, default=5,
+                        help="number of cohorts")
+    parser.add_argument('--client_per_cohort', type=int, default=15,
+                        help="num of workers per cohort")
+    parser.add_argument('--num_p_cohorts', type=int, default=4,
+                        help="num of poisnous cohorts")
+    parser.add_argument('--num_p_cohorts_clients', type=int, default=1,
+                        help="num of poisnous clients per cohor ")
     args = parser.parse_args()
     return args
