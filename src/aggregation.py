@@ -63,6 +63,26 @@ class Aggregation():
             total_data += n_agent_data  
         return  sm_updates / total_data
     
+    def cohort_agg_avg(self, global_model, cohort_updates_dict):
+        """ classic fed avg """
+        lr_vector = torch.Tensor([self.server_lr]*self.n_params).to(self.args.device)
+        sm_updates, total_cohorts = 0, 0
+        for _id, update in cohort_updates_dict.items():
+            sm_updates +=  update
+            total_cohorts += 1
+
+        aggregated_updates = sm_updates / total_cohorts
+
+        cur_global_params = parameters_to_vector(global_model.parameters())
+        new_global_params =  (cur_global_params + lr_vector*aggregated_updates).float() 
+        vector_to_parameters(new_global_params, global_model.parameters())
+        
+        # some plotting stuff if desired
+        # self.plot_sign_agreement(lr_vector, cur_global_params, new_global_params, cur_round)
+        # self.plot_norms(agent_updates_dict, cur_round)
+        return  
+
+
     def agg_comed(self, agent_updates_dict):
         agent_updates_col_vector = [update.view(-1, 1) for update in agent_updates_dict.values()]
         concat_col_vectors = torch.cat(agent_updates_col_vector, dim=1)
@@ -79,6 +99,9 @@ class Aggregation():
             l2_update = torch.norm(update, p=2) 
             update.div_(max(1, l2_update/self.args.clip))
         return
+
+
+
                   
     def plot_norms(self, agent_updates_dict, cur_round, norm=2):
         """ Plotting average norm information for honest/corrupt updates """
