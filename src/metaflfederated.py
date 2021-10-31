@@ -63,7 +63,7 @@ if __name__ == '__main__':
 
     #Let's configure these parameters
     total_cohort = 15
-    client_in_cohort = 10
+    client_in_cohort = 5
     randomly_sampled_client = np.random.choice(total_cohort*client_in_cohort, total_cohort*client_in_cohort, replace=False).reshape(total_cohort,client_in_cohort)
 
     #Meta FL training loop
