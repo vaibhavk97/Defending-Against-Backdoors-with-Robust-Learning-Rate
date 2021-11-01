@@ -1,11 +1,11 @@
-import collections
-
 import torch
 import models
 from torch.nn.utils import vector_to_parameters, parameters_to_vector
 import numpy as np
 from copy import deepcopy
 from torch.nn import functional as F
+from collections import *
+
 
 class Aggregation():
     def __init__(self, agent_data_sizes, n_params, poisoned_val_loader, args, writer):
@@ -16,8 +16,7 @@ class Aggregation():
         self.n_params = n_params
         self.poisoned_val_loader = poisoned_val_loader
         self.cum_net_mov = 0
-        
-         
+
     def aggregate_updates(self, global_model, agent_updates_dict, cur_round):
         # adjust LR if robust LR is selected
         lr_vector = torch.Tensor([self.server_lr] * self.n_params).to(self.args.device)
@@ -33,9 +32,9 @@ class Aggregation():
             aggregated_updates = self.agg_sign(agent_updates_dict)
 
         if self.args.noise > 0:
-            aggregated_updates.add_(torch.normal(mean=0, std=self.args.noise*self.args.clip, size=(self.n_params,)).to(self.args.device))
-        
-                
+            aggregated_updates.add_(
+                torch.normal(mean=0, std=self.args.noise * self.args.clip, size=(self.n_params,)).to(self.args.device))
+
         cur_global_params = parameters_to_vector(global_model.parameters())
         new_global_params = (cur_global_params + lr_vector * aggregated_updates).float()
         vector_to_parameters(new_global_params, global_model.parameters())
@@ -64,16 +63,17 @@ class Aggregation():
 
     def cohort_agg_avg(self, global_model, cohort_updates_dict):
         """ classic fed avg """
-        lr_vector = torch.Tensor([self.server_lr]*self.n_params).to(self.args.device)
+        lr_vector = torch.Tensor([self.server_lr] * self.n_params).to(self.args.device)
         sm_updates, total_cohorts = 0, 0
+
         for _id, update in cohort_updates_dict.items():
-            sm_updates +=  update
+            sm_updates += update
             total_cohorts += 1
 
         aggregated_updates = sm_updates / total_cohorts
 
         cur_global_params = parameters_to_vector(global_model.parameters())
-        new_global_params =  (cur_global_params + lr_vector*aggregated_updates).float()
+        new_global_params = (cur_global_params + lr_vector * aggregated_updates).float()
         vector_to_parameters(new_global_params, global_model.parameters())
 
         # some plotting stuff if desired
@@ -82,7 +82,7 @@ class Aggregation():
         return
 
     def krum_create_distances(self, users_grads):
-        distances = collections.defaultdict(dict)
+        distances = defaultdict(dict)
         for i in range(len(users_grads)):
             for j in range(i):
                 distances[i][j] = distances[j][i] = torch.linalg.norm(users_grads[i] - users_grads[j])
@@ -119,12 +119,13 @@ class Aggregation():
 
     def cohort_agg_avg_trimmed_mean(self, global_model, cohort_users_grads, users_count, corrupted_count):
         lr_vector = torch.Tensor([self.server_lr] * self.n_params).to(self.args.device)
-        users_grads = torch.Tensor(cohort_users_grads[0])
+        users_grads = cohort_users_grads[0].to(self.args.device)
         for i in range(1, len(cohort_users_grads)):
-            np.vstack(users_grads, cohort_users_grads[i])
+            torch.vstack((users_grads, cohort_users_grads[i].to(self.args.device)))
+        print(users_grads.shape)
+        print(cohort_users_grads.size)
         number_to_consider = int(users_grads.shape[0] - corrupted_count) - 1
         current_grads = np.empty((users_grads.shape[1],), users_grads.dtype)
-
         for i, param_across_users in enumerate(users_grads.T):
             med = np.median(param_across_users)
             good_vals = sorted(param_across_users - med, key=lambda x: abs(x))[:number_to_consider]
@@ -132,6 +133,19 @@ class Aggregation():
 
         cur_global_params = parameters_to_vector(global_model.parameters())
         new_global_params = (cur_global_params + lr_vector * current_grads).float()
+        vector_to_parameters(new_global_params, global_model.parameters())
+        return
+
+    def cohort_agg_comed(self, global_model, agent_updates_dict):
+        lr_vector = torch.Tensor([self.server_lr] * self.n_params).to(self.args.device)
+        agent_updates_col_vector = [update.view(-1, 1) for update in agent_updates_dict.values()]
+        concat_col_vectors = torch.cat(agent_updates_col_vector, dim=1)
+        aggregated_updates = torch.median(concat_col_vectors, dim=1).values
+        if self.args.noise > 0:
+            aggregated_updates.add_(
+                torch.normal(mean=0, std=self.args.noise * self.args.clip, size=(self.n_params,)).to(self.args.device))
+        cur_global_params = parameters_to_vector(global_model.parameters())
+        new_global_params = (cur_global_params + lr_vector * aggregated_updates).float()
         vector_to_parameters(new_global_params, global_model.parameters())
         return
 
@@ -149,7 +163,7 @@ class Aggregation():
     def clip_updates(self, agent_updates_dict):
         for update in agent_updates_dict.values():
             l2_update = torch.norm(update, p=2)
-            update.div_(max(1, l2_update/self.args.clip))
+            update.div_(max(1, l2_update / self.args.clip))
         return
 
     def plot_norms(self, agent_updates_dict, cur_round, norm=2):

@@ -31,7 +31,7 @@ def args_parser():
     parser.add_argument('--client_lr', type=float, default=0.2,
                         help='clients learning rate')
     
-    parser.add_argument('--client_moment', type=float, default=0.9,
+    parser.add_argument('--client_moment', type=float, default=0.1,
                         help='clients momentum')
     
     parser.add_argument('--server_lr', type=float, default=1,
