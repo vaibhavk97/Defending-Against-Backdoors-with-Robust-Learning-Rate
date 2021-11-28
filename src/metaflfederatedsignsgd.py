@@ -73,20 +73,27 @@ if __name__ == '__main__':
             agents[randomly_sampled_client[cohort][client]].turn_malicious()
 
 
-
     # Meta FL training loop
     for rnd in tqdm(range(1, args.rounds + 1)):
         rnd_global_params = parameters_to_vector(global_model.parameters()).detach()
         cohort_agent_updates_dict = {}
+        sign_updates_dict  = {}
+
         for cohort in range(total_cohort):
+
             agent_updates_dict = {}
             for client in range(client_in_cohort):
                 agent_id = randomly_sampled_client[cohort][client]
                 update = agents[agent_id].local_train(global_model, criterion)
+                sign_update = agents[agent_id].get_sign()
+                sign_updates_dict[agent_id] = sign_update
                 agent_updates_dict[agent_id] = update
-                vector_to_parameters(copy.deepcopy(rnd_global_params), global_model.parameters())
+
+                vector_to_parameters(copy.deepcopy(rnd_global_params), global_model.parameters())            
+
             cohort_agent_updates_dict[cohort] = aggregator.agg_avg(agent_updates_dict)
-        aggregator.cohort_agg_avg(global_model, cohort_agent_updates_dict)
+        
+        aggregator.cohort_sign_agg_avg(global_model, cohort_agent_updates_dict,sign_updates_dict)
 
 
         # inference in every args.snap rounds

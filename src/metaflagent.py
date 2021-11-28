@@ -31,6 +31,7 @@ class MetaFlAgent():
         utils.poison_dataset(self.train_dataset_init, self.args, self.data_idxs, agent_idx=self.id)
 
 
+    
     def local_train(self, global_model, criterion):
         """ Do a local training over the received global model, return the update """
         initial_global_model_params = parameters_to_vector(global_model.parameters()).detach()
@@ -62,5 +63,11 @@ class MetaFlAgent():
                             
         with torch.no_grad():
             update = parameters_to_vector(global_model.parameters()).double() - initial_global_model_params
+            self.update = update 
             return update
-            
+
+    def get_update(self):
+        return self.update
+
+    def get_sign(self):
+        return torch.sign(self.update)     

@@ -11,7 +11,7 @@ class Aggregation():
     def __init__(self, agent_data_sizes, n_params, poisoned_val_loader, args, writer):
         self.agent_data_sizes = agent_data_sizes
         self.args = args
-        self.writer = writer
+        self.writer = writer 
         self.server_lr = args.server_lr
         self.n_params = n_params
         self.poisoned_val_loader = poisoned_val_loader
@@ -61,6 +61,37 @@ class Aggregation():
             total_data += n_agent_data
         return sm_updates / total_data
 
+    def compute_robustLR_fromsgn(self, agent_updates_sign):
+        sm_of_signs = torch.abs(sum(agent_updates_sign))
+        sm_of_signs[sm_of_signs < self.args.robustLR_threshold] = -self.server_lr
+        sm_of_signs[sm_of_signs >= self.args.robustLR_threshold] = self.server_lr
+        return sm_of_signs.to(self.args.device)
+
+    def cohort_sign_agg_avg(self, global_model, cohort_updates_dict, agent_update_sign):
+        """ classic fed avg """
+        lr_vector = torch.Tensor([self.server_lr] * self.n_params).to(self.args.device)
+        sm_updates, total_cohorts = 0, 0
+
+        if self.args.robustLR_threshold > 0:
+            print('Checking type '+ str(type(agent_update_sign.values())))
+            lr_vector = self.compute_robustLR_fromsgn(agent_update_sign.values())
+
+        for _id, update in cohort_updates_dict.items():
+            sm_updates += update
+            total_cohorts += 1
+
+        aggregated_updates = sm_updates / total_cohorts
+
+        cur_global_params = parameters_to_vector(global_model.parameters())
+        new_global_params = (cur_global_params + lr_vector * aggregated_updates).float()
+        vector_to_parameters(new_global_params, global_model.parameters())
+
+        # some plotting stuff if desired
+        # self.plot_sign_agreement(lr_vector, cur_global_params, new_global_params, cur_round)
+        # self.plot_norms(agent_updates_dict, cur_round)
+        return
+
+
     def cohort_agg_avg(self, global_model, cohort_updates_dict):
         """ classic fed avg """
         lr_vector = torch.Tensor([self.server_lr] * self.n_params).to(self.args.device)
@@ -79,7 +110,7 @@ class Aggregation():
         # some plotting stuff if desired
         # self.plot_sign_agreement(lr_vector, cur_global_params, new_global_params, cur_round)
         # self.plot_norms(agent_updates_dict, cur_round)
-        return
+        return    
 
     def krum_create_distances(self, users_grads):
         distances = defaultdict(dict)
@@ -122,8 +153,6 @@ class Aggregation():
         users_grads = cohort_users_grads[0].to(self.args.device)
         for i in range(1, len(cohort_users_grads)):
             torch.vstack((users_grads, cohort_users_grads[i].to(self.args.device)))
-        print(users_grads.shape)
-        print(cohort_users_grads.size)
         number_to_consider = int(users_grads.shape[0] - corrupted_count) - 1
         current_grads = np.empty((users_grads.shape[1],), users_grads.dtype)
         for i, param_across_users in enumerate(users_grads.T):
