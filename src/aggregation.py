@@ -22,7 +22,7 @@ class Aggregation():
             if not self.args.cohort == 'true':
                 lr_vector = self.compute_robustLR(agent_updates_dict)
             else:
-                lr_vector = self.compute_robustLR_fromsgn(agent_updates_sign)
+                lr_vector = self.compute_robustLR_fromsgn(agent_updates_sign.values())
 
         aggregated_updates = 0
         if not self.args.cohort == 'true':

@@ -87,7 +87,7 @@ if __name__ == '__main__':
                 secAggUnit.submit_ndata_points(agent_data_sizes[agent_id])
                 vector_to_parameters(copy.deepcopy(rnd_global_params), global_model.parameters())
             cohort_agent_updates_dict[cohort] = secAggUnit.get_average_values()
-        aggregator.aggregate_updates(global_model, cohort_agent_updates_dict)
+        aggregator.aggregate_updates(global_model, cohort_agent_updates_dict,sign_updates_dict)
 
         # inference in every args.snap rounds
         if rnd % args.snap == 0:

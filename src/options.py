@@ -7,7 +7,7 @@ def args_parser():
     parser.add_argument('--data', type=str, default='fmnist',
                         help="dataset we want to train on")
     
-    parser.add_argument('--num_agents', type=int, default=3,
+    parser.add_argument('--num_agents', type=int, default=75,
                         help="number of agents:K")
     
     parser.add_argument('--agent_frac', type=float, default=1,
@@ -78,7 +78,7 @@ def args_parser():
                         help="num of workers per cohort")
     parser.add_argument('--num_p_cohorts', type=int, default=4,
                         help="num of poisnous cohorts")
-    parser.add_argument('--num_p_cohorts_clients', type=int, default=1,
+    parser.add_argument('--num_p_cohorts_clients', type=int, default=3,
                         help="num of poisnous clients per cohort")
     args = parser.parse_args()
     return args
