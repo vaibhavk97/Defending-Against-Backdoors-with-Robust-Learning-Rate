@@ -7,7 +7,7 @@ def args_parser():
     parser.add_argument('--data', type=str, default='fmnist',
                         help="dataset we want to train on")
     
-    parser.add_argument('--num_agents', type=int, default=75,
+    parser.add_argument('--num_agents', type=int, default=3,
                         help="number of agents:K")
     
     parser.add_argument('--agent_frac', type=float, default=1,
@@ -15,6 +15,9 @@ def args_parser():
     
     parser.add_argument('--num_corrupt', type=int, default=0,
                         help="number of corrupt agents")
+
+    parser.add_argument('--cohort', type=str, default='true',
+                        help="cohort mode on")
     
     parser.add_argument('--rounds', type=int, default=50,
                         help="number of communication rounds:R")
@@ -49,7 +52,7 @@ def args_parser():
     parser.add_argument('--pattern_type', type=str, default='plus', 
                         help="shape of bd pattern")
     
-    parser.add_argument('--robustLR_threshold', type=int, default=0, 
+    parser.add_argument('--robustLR_threshold', type=int, default=1,
                         help="break ties when votes sum to 0")
     
     parser.add_argument('--clip', type=float, default=0, 
@@ -76,6 +79,6 @@ def args_parser():
     parser.add_argument('--num_p_cohorts', type=int, default=4,
                         help="num of poisnous cohorts")
     parser.add_argument('--num_p_cohorts_clients', type=int, default=1,
-                        help="num of poisnous clients per cohor ")
+                        help="num of poisnous clients per cohort")
     args = parser.parse_args()
     return args
