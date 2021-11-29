@@ -100,7 +100,7 @@ class Aggregation():
         for i in range(1, len(cohort_users_grads)):
             users_grads = torch.vstack((users_grads, cohort_users_grads[i].to(self.args.device)))
 
-        users_count = args.num_cohorts #need to fix this
+        users_count = 15 #need to fix this
         corrupted_count = 6 #need to fix this
         non_malicious_count = users_count - corrupted_count
         minimal_error = 1e20
