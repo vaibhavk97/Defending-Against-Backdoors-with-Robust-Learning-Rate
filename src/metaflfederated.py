@@ -77,6 +77,7 @@ if __name__ == '__main__':
         rnd_global_params = parameters_to_vector(global_model.parameters()).detach()
         cohort_agent_updates_dict = {}
         sign_updates_dict = {}
+        sign_cohorts_dict = {}
         for cohort in range(total_cohort):
             secAggUnit.reset_values()
             for client in range(client_in_cohort):
@@ -87,8 +88,8 @@ if __name__ == '__main__':
                 secAggUnit.submit_ndata_points(agent_data_sizes[agent_id])
                 vector_to_parameters(copy.deepcopy(rnd_global_params), global_model.parameters())
             cohort_agent_updates_dict[cohort] = secAggUnit.get_average_values()
-        aggregator.aggregate_updates(global_model, cohort_agent_updates_dict,sign_updates_dict)
-
+            sign_cohorts_dict[cohort] = torch.sign(cohort_agent_updates_dict[cohort])
+        aggregator.aggregate_updates(global_model, cohort_agent_updates_dict,sign_updates_dict,sign_cohorts_dict)
         # inference in every args.snap rounds
         if rnd % args.snap == 0:
             with torch.no_grad():

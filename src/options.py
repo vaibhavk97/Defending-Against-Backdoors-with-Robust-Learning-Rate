@@ -13,7 +13,7 @@ def args_parser():
     parser.add_argument('--agent_frac', type=float, default=1,
                         help="fraction of agents per round:C")
     
-    parser.add_argument('--num_corrupt', type=int, default=0,
+    parser.add_argument('--num_corrupt', type=int, default=8,
                         help="number of corrupt agents")
 
     parser.add_argument('--cohort', type=str, default='true',
@@ -28,7 +28,7 @@ def args_parser():
     parser.add_argument('--local_ep', type=int, default=1,
                         help="number of local epochs:E")
     
-    parser.add_argument('--bs', type=int, default=256,
+    parser.add_argument('--bs', type=int, default=64,
                         help="local batch size: B")
     
     parser.add_argument('--client_lr', type=float, default=0.2,
@@ -51,8 +51,17 @@ def args_parser():
     
     parser.add_argument('--pattern_type', type=str, default='plus', 
                         help="shape of bd pattern")
+
+    parser.add_argument('--abs_update', type=str, default='false',
+                        help="absolute feature values")
+
+    parser.add_argument('--sign_type', type=str, default='client',
+                        help="where is the sign aggregated from")
+
+    parser.add_argument('--feat_zero', type=str, default='false',
+                        help="zero when sign doesn't agree")
     
-    parser.add_argument('--robustLR_threshold', type=int, default=1,
+    parser.add_argument('--robustLR_threshold', type=int, default=0,
                         help="break ties when votes sum to 0")
     
     parser.add_argument('--clip', type=float, default=0, 
@@ -72,13 +81,13 @@ def args_parser():
     
     parser.add_argument('--num_workers', type=int, default=0, 
                         help="num of workers for multithreading")
-    parser.add_argument('--num_cohorts', type=int, default=5,
+    parser.add_argument('--num_cohorts', type=int, default=15,
                         help="number of cohorts")
-    parser.add_argument('--client_per_cohort', type=int, default=15,
+    parser.add_argument('--client_per_cohort', type=int, default=5,
                         help="num of workers per cohort")
     parser.add_argument('--num_p_cohorts', type=int, default=4,
                         help="num of poisnous cohorts")
-    parser.add_argument('--num_p_cohorts_clients', type=int, default=3,
+    parser.add_argument('--num_p_cohorts_clients', type=int, default=2,
                         help="num of poisnous clients per cohort")
     args = parser.parse_args()
     return args

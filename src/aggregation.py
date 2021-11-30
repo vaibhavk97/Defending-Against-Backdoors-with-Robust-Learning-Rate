@@ -25,13 +25,16 @@ class Aggregation():
             agent_updates_dict[x] = val
         return agent_updates_dict
 
-    def aggregate_updates(self, global_model, agent_updates_dict, agent_updates_sign=None):
+    def aggregate_updates(self, global_model, agent_updates_dict, agent_updates_sign=None, sign_cohort_dict=None):
         lr_vector = torch.Tensor([self.server_lr] * self.n_params).to(self.args.device)
-        if self.args.robustLR_threshold > 0:
-            if not self.args.cohort == 'true':
-                lr_vector = self.compute_robustLR(agent_updates_dict)
-            else:
-                lr_vector = self.compute_robustLR_fromsgn(agent_updates_sign.values())
+        if self.args.feat_zero == 'false':
+            if self.args.robustLR_threshold > 0:
+                if not self.args.cohort == 'true':
+                    lr_vector = self.compute_robustLR(agent_updates_dict)
+                elif self.args.sign_type == 'client':
+                    lr_vector = self.compute_robustLR_fromsgn(agent_updates_sign.values())
+                else:
+                    lr_vector = self.compute_robustLR_fromsgn(sign_cohort_dict.values())
 
         aggregated_updates = 0
         if not self.args.cohort == 'true':
@@ -54,10 +57,10 @@ class Aggregation():
         if self.args.noise > 0:
             aggregated_updates.add_(
                 torch.normal(mean=0, std=self.args.noise * self.args.clip, size=(self.n_params,)).to(self.args.device))
-        # if self.args.abs_update == 'true':
-        #     aggregated_updates = torch.abs(aggregated_updates)
-        # elif self.args.feat_zero == 'true':
-        #     aggregated_updates = self.check_agent_updates_for_sign(agent_updates_dict,agent_updates_sign)
+        if self.args.abs_update == 'true':
+            aggregated_updates = torch.abs(aggregated_updates)
+        elif self.args.feat_zero == 'true':
+            aggregated_updates = self.check_agent_updates_for_sign(agent_updates_dict,agent_updates_sign)
 
         cur_global_params = parameters_to_vector(global_model.parameters())
         new_global_params = (cur_global_params + lr_vector * aggregated_updates).float()
