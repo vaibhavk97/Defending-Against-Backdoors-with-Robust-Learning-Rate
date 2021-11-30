@@ -135,15 +135,12 @@ class Aggregation():
         return users_grads[minimal_error_index]
 
     def cohort_agg_avg_trimmed_mean(self, cohort_users_grads):
-        users_grads = cohort_users_grads[0].to(self.args.device)
-        for i in range(1, len(cohort_users_grads)):
-            users_grads = torch.vstack((users_grads, cohort_users_grads[i].to(self.args.device)))
+        agent_updates_col_vector = [update.view(-1, 1) for update in cohort_users_grads.values()]
+        concat_col_vectors = torch.cat(agent_updates_col_vector, dim=1)
         beta = 0.25
-        skip = int(beta*users_grads.shape[0])
-        current_grads = torch.empty((users_grads.shape[1],), dtype=users_grads.dtype).to(self.args.device)
-        for i, param_across_users in enumerate(users_grads.T):
-            current_grads[i] = torch.mean(torch.sort(param_across_users)[0][skip:-skip])
-        return current_grads
+        skip = int(beta*concat_col_vectors.shape[1])
+        sorted_gradients, _ = torch.sort(concat_col_vectors, dim=1)
+        return torch.mean(sorted_gradients[:,skip:-skip], dim=1)
 
     def cohort_agg_comed(self, agent_updates_dict):
         agent_updates_col_vector = [update.view(-1, 1) for update in agent_updates_dict.values()]
