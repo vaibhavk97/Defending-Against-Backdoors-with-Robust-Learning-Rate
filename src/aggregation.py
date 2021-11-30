@@ -16,6 +16,15 @@ class Aggregation():
         self.poisoned_val_loader = poisoned_val_loader
         self.cum_net_mov = 0
 
+    def check_agent_updates_for_sign(self,agent_updates_dict,agent_updates_sign):
+        sm_of_signs = torch.sign(torch.sum(agent_updates_sign.values()))
+        for x in range(len(agent_updates_dict)):
+            val = agent_updates_dict[x]
+            val = val*sm_of_signs
+            val[val<0] = 0
+            agent_updates_dict[x] = val
+        return agent_updates_dict
+
     def aggregate_updates(self, global_model, agent_updates_dict, agent_updates_sign=None):
         lr_vector = torch.Tensor([self.server_lr] * self.n_params).to(self.args.device)
         if self.args.robustLR_threshold > 0:
@@ -45,6 +54,10 @@ class Aggregation():
         if self.args.noise > 0:
             aggregated_updates.add_(
                 torch.normal(mean=0, std=self.args.noise * self.args.clip, size=(self.n_params,)).to(self.args.device))
+        # if self.args.abs_update == 'true':
+        #     aggregated_updates = torch.abs(aggregated_updates)
+        # elif self.args.feat_zero == 'true':
+        #     aggregated_updates = self.check_agent_updates_for_sign(agent_updates_dict,agent_updates_sign)
 
         cur_global_params = parameters_to_vector(global_model.parameters())
         new_global_params = (cur_global_params + lr_vector * aggregated_updates).float()
@@ -100,9 +113,9 @@ class Aggregation():
         for i in range(1, len(cohort_users_grads)):
             users_grads = torch.vstack((users_grads, cohort_users_grads[i].to(self.args.device)))
 
-        users_count = 0 #need to fix this
-        corrupted_count = 0 #need to fix this
-        non_malicious_count = users_count - corrupted_count
+        users_count = self.args.num_cohorts
+        corrupted_count = (self.args.num_cohorts-3)//2
+        non_malicious_count = users_count - corrupted_count - 2
         minimal_error = 1e20
         minimal_error_index = -1
 
