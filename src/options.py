@@ -22,7 +22,7 @@ def args_parser():
     parser.add_argument('--rounds', type=int, default=50,
                         help="number of communication rounds:R")
     
-    parser.add_argument('--aggr', type=str, default='avg', 
+    parser.add_argument('--aggr', type=str, default='trimmed',
                         help="aggregation function to aggregate agents' local weights")
     
     parser.add_argument('--local_ep', type=int, default=1,
@@ -55,7 +55,7 @@ def args_parser():
     parser.add_argument('--abs_update', type=str, default='false',
                         help="absolute feature values")
 
-    parser.add_argument('--sign_type', type=str, default='client',
+    parser.add_argument('--sign_type', type=str, default='cohort',
                         help="where is the sign aggregated from")
 
     parser.add_argument('--feat_zero', type=str, default='false',

@@ -142,8 +142,7 @@ class Aggregation():
         skip = int(beta*users_grads.shape[0])
         current_grads = torch.empty((users_grads.shape[1],), dtype=users_grads.dtype).to(self.args.device)
         for i, param_across_users in enumerate(users_grads.T):
-            good_vals = sorted(param_across_users)[skip:-skip]
-            current_grads[i] = np.mean(good_vals)
+            current_grads[i] = torch.mean(torch.sort(param_across_users)[0][skip:-skip])
         return current_grads
 
     def cohort_agg_comed(self, agent_updates_dict):
