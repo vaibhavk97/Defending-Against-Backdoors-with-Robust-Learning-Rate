@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     #randomly_sampled_client = np.random.choice(total_cohort * client_in_cohort, total_cohort * client_in_cohort,
     #                                           replace=False).reshape(total_cohort, client_in_cohort)
-    randomly_sampled_client = np.random.choice(args.num_agents, args.num_agents,replace=False).reshape(int(args.num_agents/(pois_cohort*pois_client)), pois_cohort*pois_client)
+    randomly_sampled_client = np.random.choice(args.num_agents, args.num_agents,replace=False).reshape(int(args.num_agents/(args.num_corrupt)), args.num_corrupt)
 
     for i in randomly_sampled_client[0,:]:
         agents[i].turn_malicious()
@@ -83,7 +83,7 @@ if __name__ == '__main__':
         sign_updates_dict = {}
         sign_cohorts_dict = {}
         poisinous_client = np.random.choice(randomly_sampled_client[0,:],pois_cohort*pois_client ,replace=False)
-        non_poisinous_client = np.random.choice(randomly_sampled_client[1:,:].flatten(),args.num_agents - (pois_cohort*pois_client),replace=False)
+        non_poisinous_client = np.random.choice(randomly_sampled_client[1:,:].flatten(),args.num_agents - args.num_corrupt,replace=False)
         cohort_counter = 0
         non_poisinous_client_counter = 0
         posinous_client_counter = 0
