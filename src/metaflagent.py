@@ -27,7 +27,10 @@ class MetaFlAgent():
         self.n_data = len(self.train_dataset)
 
     def turn_malicious(self):
-        utils.poison_dataset(self.train_dataset_init, self.args, self.data_idxs, agent_idx=self.id)
+        if self.args.data == 'fedemnist':
+            utils.poison_dataset(self.train_dataset, self.args, self.data_idxs, agent_idx=self.id)
+        else:
+            utils.poison_dataset(self.train_dataset_init, self.args, self.data_idxs, agent_idx=self.id)
 
     def local_train(self, global_model, criterion):
         """ Do a local training over the received global model, return the update """

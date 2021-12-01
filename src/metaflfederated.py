@@ -13,6 +13,7 @@ import torch.nn as nn
 from time import ctime
 from torch.nn.utils import parameters_to_vector, vector_to_parameters
 from SecAggSimul import SecAggSimul
+from utils import H5Dataset
 
 torch.backends.cudnn.enabled = True
 torch.backends.cudnn.benchmark = True
