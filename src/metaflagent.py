@@ -63,11 +63,10 @@ class MetaFlAgent():
 
         with torch.no_grad():
             update = parameters_to_vector(global_model.parameters()).double() - initial_global_model_params
-            self.update = update
-            return update
+            return update, torch.sign(update)
 
-    def get_update(self):
-        return self.update
+#    def get_update(self):
+#        return self.update
 
-    def get_sign(self):
-        return torch.sign(self.update)
+#    def get_sign(self):
+#        return torch.sign(self.update)
