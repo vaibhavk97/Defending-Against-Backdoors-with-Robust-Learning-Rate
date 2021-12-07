@@ -99,8 +99,8 @@ if __name__ == '__main__':
                     agent_id = non_poisinous_client[non_poisinous_client_counter]
                     non_poisinous_client_counter = non_poisinous_client_counter + 1
                 #agent_id = randomly_sampled_client[cohort][client]
-                update = agents[agent_id].local_train(global_model, criterion)
-                sign_updates_dict[agent_id] = agents[agent_id].get_sign()
+                update, sign_update = agents[agent_id].local_train(global_model, criterion)
+                sign_updates_dict[agent_id] = sign_update
                 secAggUnit.submit_grad_ndata_prod(update * agent_data_sizes[agent_id])
                 secAggUnit.submit_ndata_points(agent_data_sizes[agent_id])
                 vector_to_parameters(copy.deepcopy(rnd_global_params), global_model.parameters())
