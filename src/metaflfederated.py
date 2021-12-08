@@ -110,4 +110,6 @@ if __name__ == '__main__':
                 writer.add_scalar('Poison/Cumulative_Poison_Accuracy_Mean', cum_poison_acc_mean / rnd, rnd)
                 print(f'| Poison Loss/Poison Acc: {poison_loss:.3f} / {poison_acc:.3f} |')
 
+    if args.saliency_map == 'true':
+        generate_saliency_map(args, global_model)
     print('Training has finished!')

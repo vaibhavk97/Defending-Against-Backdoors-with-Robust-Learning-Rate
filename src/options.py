@@ -18,7 +18,10 @@ def args_parser():
 
     parser.add_argument('--cohort', type=str, default='true',
                         help="cohort mode on")
-    
+
+    parser.add_argument('--saliency_map', type=str, default='false',
+                        help="print saliency maps")
+
     parser.add_argument('--rounds', type=int, default=50,
                         help="number of communication rounds:R")
     
