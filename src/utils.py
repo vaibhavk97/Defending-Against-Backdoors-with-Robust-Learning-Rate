@@ -4,6 +4,8 @@ from torch.utils.data import Dataset
 from torchvision import datasets, transforms
 from math import floor
 from collections import defaultdict
+from captum.attr import IntegratedGradients, Saliency
+from matplotlib import pyplot as plt 
 import random
 import cv2
 
@@ -283,39 +285,44 @@ def add_pattern_bd(x, dataset='cifar10', pattern_type='square', agent_idx=-1):
             
     return x
 
-    def generate_saliency_map(args, model):
-        data_dir = '../data'
-        if args.data == 'fmnist':
-            transform =  transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=[0.2860], std=[0.3530])])
-            test_dataset = datasets.FashionMNIST(data_dir, train=False, download=True, transform=transform)
-        
-            all_idxs = (test_dataset.targets == args.base_class).nonzero().flatten().tolist()
-            poison_idxs = random.sample(all_idxs, 1)[0]
+def generate_saliency_map(args, model):
+    data_dir = '../data'
+    if args.data == 'fmnist':
+        transform =  transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=[0.2860], std=[0.3530])])
+        test_dataset = datasets.FashionMNIST(data_dir, train=False, download=True, transform=transform)
+    elif args.data == 'fedemnist':
+        test_dir = '../data/Fed_EMNIST/fed_emnist_all_valset.pt'
+        test_dataset = torch.load(test_dir)
 
-            clean_img = test_dataset.data[poison_idxs]
-            clean_img_print=clean_img.reshape(1,clean_img.shape[0],clean_img.shape[1])
+    all_idxs = (test_dataset.targets == args.base_class).nonzero().flatten().tolist()
+    poison_idxs = random.sample(all_idxs, 1)[0]
 
-            plt.imshow(clean_img_print.permute(1, 2, 0))
-            plt.savefig('original_image.png')
+    if args.data == 'fmnist':
+        clean_img = test_dataset.data[poison_idxs]
+        clean_img_print=clean_img.reshape(1,clean_img.shape[0],clean_img.shape[1])
+    elif args.data == 'fedemnist':
+        clean_img = test_dataset.inputs[poison_idxs]
+        clean_img_print=clean_img
+    
+    plt.imshow(clean_img_print.permute(1, 2, 0))
+    plt.savefig('original_image.png')
 
-            bd_img = add_pattern_bd(clean_img, args.data, pattern_type=args.pattern_type)
-            bd_img_print=torch.from_numpy(bd_img.reshape(1,bd_img.shape[0],bd_img.shape[1]))
-            plt.imshow(bd_img_print.permute(1, 2, 0))
-            plt.savefig('poisoned_image.png')
+    bd_img = add_pattern_bd(clean_img, args.data, pattern_type=args.pattern_type)
+    bd_img_print=torch.from_numpy(bd_img.reshape(1,bd_img.shape[0],bd_img.shape[1]))
+    plt.imshow(bd_img_print.permute(1, 2, 0))
+    plt.savefig('poisoned_image.png')
 
-            with torch.no_grad():
-                bd_img = np.expand_dims(bd_img, axis=(0))
-                X_tensor = transforms.functional.to_tensor(bd_img)
-                X_tensor = X_tensor.reshape(1,1,28,28)
-                b_id = torch.LongTensor([args.base_class])
-                saliency = Saliency(model)
-                attr_ig = saliency.attribute(X_tensor, b_id)
-                attr_ig = attr_ig.reshape(1,28,28)
-                plt.imshow(attr_ig.permute(1, 2, 0))
-                plt.savefig('saliency.png')
-        elif args.data == 'fedemnist':
-            test_dir = '../data/Fed_EMNIST/fed_emnist_all_valset.pt'
-            test_dataset = torch.load(test_dir) 
+    with torch.no_grad():
+        bd_img = np.expand_dims(bd_img, axis=(0))
+        X_tensor = transforms.functional.to_tensor(bd_img)
+        X_tensor = X_tensor.reshape(1,1,28,28)
+        b_id = torch.LongTensor([args.base_class])
+        saliency = Saliency(model)
+        attr_ig = saliency.attribute(X_tensor, b_id)
+        attr_ig = attr_ig.reshape(1,28,28)
+        plt.imshow(attr_ig.permute(1, 2, 0))
+        plt.savefig('saliency.png')
+
 
 
 def print_exp_details(args):
