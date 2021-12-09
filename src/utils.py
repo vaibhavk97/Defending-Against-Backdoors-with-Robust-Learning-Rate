@@ -325,6 +325,7 @@ def generate_saliency_map(args, model):
         attr_ig = saliency.attribute(X_tensor, b_id)
 
         attr_ig = attr_ig.reshape(1,28,28)
+        attr_ig = torch.Tensor.cpu(attr_ig)
         plt.imshow(attr_ig.permute(1, 2, 0))
         plt.savefig('saliency.png')
 
