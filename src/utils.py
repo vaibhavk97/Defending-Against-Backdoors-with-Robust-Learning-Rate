@@ -316,9 +316,14 @@ def generate_saliency_map(args, model):
         bd_img = np.expand_dims(bd_img, axis=(0))
         X_tensor = transforms.functional.to_tensor(bd_img)
         X_tensor = X_tensor.reshape(1,1,28,28)
+        X_tensor = X_tensor.to(device=args.device, non_blocking=True)
+
         b_id = torch.LongTensor([args.base_class])
+        b_id = b_id.to(device=args.device, non_blocking=True)
+
         saliency = Saliency(model)
         attr_ig = saliency.attribute(X_tensor, b_id)
+
         attr_ig = attr_ig.reshape(1,28,28)
         plt.imshow(attr_ig.permute(1, 2, 0))
         plt.savefig('saliency.png')
